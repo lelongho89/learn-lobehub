@@ -3,6 +3,16 @@ import { z } from 'zod';
 
 const DEFAULT_S3_FILE_PATH = 'files';
 
+const normalizeOptionalUrl = (value: unknown) => {
+  if (typeof value !== 'string') return value;
+
+  const trimmedValue = value.trim();
+  if (trimmedValue === '') return undefined;
+
+  const unquotedValue = trimmedValue.match(/^(['"])(.*)\1$/)?.[2]?.trim();
+  return unquotedValue ?? trimmedValue;
+};
+
 export const getFileConfig = () => {
   if (!!process.env.NEXT_PUBLIC_S3_DOMAIN) {
     console.warn(
@@ -51,7 +61,7 @@ export const getFileConfig = () => {
       S3_BUCKET: z.string().optional(),
       S3_ENABLE_PATH_STYLE: z.boolean(),
 
-      S3_ENDPOINT: z.string().url().optional(),
+      S3_ENDPOINT: z.preprocess(normalizeOptionalUrl, z.string().url().optional()),
       S3_PREVIEW_URL_EXPIRE_IN: z.number(),
       S3_PUBLIC_DOMAIN: z.string().optional(),
       S3_REGION: z.string().optional(),
